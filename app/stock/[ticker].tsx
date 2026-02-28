@@ -212,7 +212,7 @@ const ContrarianCard = ({ data }: { data: ContrarianEdge }) => {
         <Text style={ce.takeText}>{data.contrarian_take}</Text>
       </View>
 
-      {/* Two-column: crowd vs kratos */}
+      {/* Two-column: crowd vs aletheia */}
       <View style={ce.twoCol}>
         <View style={[ce.col, { borderColor: RED + '40' }]}>
           <Text style={[ce.colTitle, { color: RED }]}>CROWD SEES</Text>
@@ -224,8 +224,8 @@ const ContrarianCard = ({ data }: { data: ContrarianEdge }) => {
           ))}
         </View>
         <View style={[ce.col, { borderColor: GREEN + '40' }]}>
-          <Text style={[ce.colTitle, { color: GREEN }]}>KRATOS SEES</Text>
-          {data.kratos_sees.map((s, i) => (
+          <Text style={[ce.colTitle, { color: GREEN }]}>ALETHEIA SEES</Text>
+          {data.aletheia_sees.map((s, i) => (
             <View key={i} style={ce.colRow}>
               <Text style={[ce.colDot, { color: GREEN }]}>•</Text>
               <Text style={ce.colText}>{s}</Text>
@@ -309,7 +309,7 @@ const ChatBubble = ({ msg }: { msg: ChatMessage }) => {
     <View style={[chat.row, isUser && { justifyContent: 'flex-end' }]}>
       {!isUser && (
         <View style={chat.aiAvatar}>
-          <Text style={chat.aiAvatarText}>K</Text>
+          <Text style={chat.aiAvatarText}>A</Text>
         </View>
       )}
       <View style={[chat.bubble, isUser ? chat.userBubble : chat.aiBubble]}>
@@ -439,7 +439,7 @@ export default function StockScreen() {
       </View>
       <View style={styles.loadingBody}>
         <ActivityIndicator size="large" color={GREEN} />
-        <Text style={[styles.loadingText, { color: MUTED }]}>KRATOS is analysing {ticker}…</Text>
+        <Text style={[styles.loadingText, { color: MUTED }]}>ALETHEIA is analysing {ticker}…</Text>
         <Text style={[styles.loadingSub,  { color: MUTED }]}>Scanning fundamentals, narrative, positioning</Text>
       </View>
     </SafeAreaView>
@@ -613,7 +613,7 @@ export default function StockScreen() {
               <View style={styles.contrarianLoading}>
                 <ActivityIndicator color={PURPLE} />
                 <Text style={[styles.loadingSub, { color: MUTED }]}>
-                  KRATOS is gathering sentiment intelligence…
+                  ALETHEIA is gathering sentiment intelligence…
                 </Text>
               </View>
             )}
@@ -637,7 +637,7 @@ export default function StockScreen() {
             {/* Chat section */}
             <View style={styles.chatDivider}>
               <View style={styles.chatDividerLine} />
-              <Text style={styles.chatDividerText}>ASK KRATOS</Text>
+              <Text style={styles.chatDividerText}>ASK ALETHEIA</Text>
               <View style={styles.chatDividerLine} />
             </View>
 

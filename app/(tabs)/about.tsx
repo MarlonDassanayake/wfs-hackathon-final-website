@@ -1,4 +1,5 @@
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { Image } from 'expo-image';
 import React from 'react';
 import {
   ScrollView,
@@ -19,6 +20,12 @@ const BLUE   = '#00B0FF';
 const RED    = '#FF5252';
 
 const philosophy = [
+  {
+    icon: 'waveform' as const,
+    color: BLUE,
+    title: 'Sentiment Intelligence',
+    body: 'ALETHEIA\'s edge. Track narrative vs fundamentals divergence. Elevated hype with deteriorating fundamentals = short signal. Ignored quality with low sentiment = long signal.',
+  },
   {
     icon: 'exclamationmark.triangle.fill' as const,
     color: RED,
@@ -58,26 +65,31 @@ export default function AboutScreen() {
 
         {/* ── Brand header ───────────────────────────────────────────────────── */}
         <Animated.View entering={FadeIn.duration(600)} style={styles.brandBlock}>
-          <IconSymbol size={48} name="chart.bar.fill" color={GREEN} />
-          <Text style={styles.appName}>KRATOS</Text>
+          <Image
+            source={require('../../assets/images/logo.jpg')}
+            style={{ width: 72, height: 72, borderRadius: 16 }}
+            contentFit="contain"
+          />
+          <Text style={styles.appName}>ALETHEIA</Text>
           <Text style={styles.tagline}>Personal Hedge Fund</Text>
           <View style={styles.divider} />
           <Text style={styles.description}>
-            KRATOS is an AI-powered investment intelligence platform built for contrarian investors.
-            It analyses stocks through a rigorous philosophy that prioritises moats, downside
-            protection, and narrative gaps — helping you find what the crowd misses.
+            ALETHEIA (Greek: "truth/disclosure") is an AI-powered investment intelligence platform
+            built for contrarian investors. It reveals the gap between narrative and reality —
+            helping you find what the crowd misses through sentiment intelligence, moat analysis,
+            and rigorous fundamental scrutiny.
           </Text>
         </Animated.View>
 
         {/* ── Features ───────────────────────────────────────────────────────── */}
         <Animated.View entering={FadeInDown.delay(200).springify()}>
-          <Text style={styles.sectionTitle}>WHAT KRATOS DOES</Text>
+          <Text style={styles.sectionTitle}>WHAT ALETHEIA DOES</Text>
           <View style={styles.featuresGrid}>
             {[
-              { icon: 'magnifyingglass' as const, color: GREEN,  label: 'Stock Analysis',  desc: 'Deep AI analysis with short & long thesis scoring' },
-              { icon: 'newspaper.fill'  as const, color: BLUE,   label: 'Market News',     desc: 'Themed news with impact ratings, linked to articles' },
-              { icon: 'person.2.fill'   as const, color: AMBER,  label: 'Social Pulse',    desc: 'Reddit posts and X sentiment from financial communities' },
-              { icon: 'waveform'        as const, color: RED,    label: 'Fear & Greed',    desc: 'CNN Fear & Greed Index with historical comparison' },
+              { icon: 'magnifyingglass' as const,    color: GREEN,  label: 'Stock Analysis',    desc: 'Deep AI analysis with short & long thesis scoring' },
+              { icon: 'waveform'        as const,    color: BLUE,   label: 'Sentiment Intel',   desc: 'Narrative vs fundamentals divergence — the ALETHEIA edge' },
+              { icon: 'briefcase.fill'  as const,    color: AMBER,  label: 'Portfolio Hedge',   desc: 'Factor-based risk assessment, beta analysis, and hedge recommendations' },
+              { icon: 'newspaper.fill'  as const,    color: RED,    label: 'Social & Markets',  desc: 'Reddit posts, X pulse, market news with impact ratings' },
             ].map((f) => (
               <View key={f.label} style={styles.featureCard}>
                 <IconSymbol size={22} name={f.icon} color={f.color} />
@@ -143,7 +155,7 @@ export default function AboutScreen() {
 
         {/* ── Version ────────────────────────────────────────────────────────── */}
         <Animated.View entering={FadeInDown.delay(650).springify()} style={styles.versionRow}>
-          <Text style={styles.versionText}>KRATOS v1.0  ·  Built at WFS Hackathon 2026</Text>
+          <Text style={styles.versionText}>ALETHEIA v1.0  ·  Built at WFS Hackathon 2026</Text>
           <Text style={[styles.versionText, { color: MUTED + '80', marginTop: 4 }]}>
           </Text>
         </Animated.View>

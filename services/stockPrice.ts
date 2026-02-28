@@ -1,5 +1,5 @@
 /**
- * KRATOS — Real-time Stock Price Service
+ * ALETHEIA — Real-time Stock Price Service
  * Primary: Yahoo Finance v7 quote API (comprehensive, includes marketCap)
  * Fallback: Yahoo Finance v8 chart API
  */

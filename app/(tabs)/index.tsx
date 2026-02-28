@@ -1,5 +1,5 @@
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import { analyzeStock, getLandingData, type LandingData, type LandingPick } from '@/services/gemini';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { IconSymbol } from '@/components/ui/IconSymbol';
 
 const BG     = '#0D1117';
 const CARD   = '#161B22';
@@ -117,9 +118,13 @@ export default function HomeScreen() {
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <Animated.View entering={FadeIn.duration(500)} style={styles.header}>
-          <IconSymbol size={36} name="chart.bar.fill" color={GREEN} />
+          <Image
+            source={require('../../assets/images/logo.jpg')}
+            style={{ width: 44, height: 44, borderRadius: 8 }}
+            contentFit="contain"
+          />
           <View style={styles.headerText}>
-            <Text style={styles.appName}>KRATOS</Text>
+            <Text style={styles.appName}>ALETHEIA</Text>
             <Text style={[styles.appSub, { color: MUTED }]}>Personal Hedge Fund</Text>
           </View>
         </Animated.View>
@@ -206,7 +211,7 @@ export default function HomeScreen() {
           <View style={styles.loadingRow}>
             <ActivityIndicator color={GREEN} />
             <Text style={[styles.loadingText, { color: MUTED }]}>
-              KRATOS AI is scanning the market…
+              ALETHEIA is scanning the market…
             </Text>
           </View>
         )}

@@ -61,6 +61,19 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="portfolio"
+        options={{
+          title: 'Portfolio Hedge',
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="briefcase.fill" color={color} />,
+          tabBarLabelStyle: {
+            fontSize: 8,
+            fontWeight: '700',
+            letterSpacing: 0.3,
+            marginBottom: 2,
+          },
+        }}
+      />
+      <Tabs.Screen
         name="about"
         options={{
           title: 'About',

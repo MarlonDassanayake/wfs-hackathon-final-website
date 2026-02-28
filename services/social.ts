@@ -1,5 +1,5 @@
 /**
- * KRATOS — Social & Market Data Service
+ * ALETHEIA — Social & Market Data Service
  * Fetches Fear & Greed index (CNN), Reddit posts (public API),
  * and market news via Gemini.
  */
@@ -64,7 +64,7 @@ export async function fetchFearGreed(): Promise<FearGreedData> {
   // Fetch last 365 days so we can compute all historical comparisons
   const res = await fetch(
     'https://api.alternative.me/fng/?limit=365&format=json',
-    { headers: { 'User-Agent': 'KRATOS/1.0' } }
+    { headers: { 'User-Agent': 'ALETHEIA/1.0' } }
   );
   if (!res.ok) throw new Error(`Fear & Greed API ${res.status}`);
 
@@ -90,7 +90,7 @@ export async function fetchFearGreed(): Promise<FearGreedData> {
 async function fetchSub(sub: string, limit = 5): Promise<RedditPost[]> {
   const res = await fetch(
     `https://www.reddit.com/r/${sub}/top.json?limit=${limit}&t=day`,
-    { headers: { 'User-Agent': 'KRATOS/1.0' } }
+    { headers: { 'User-Agent': 'ALETHEIA/1.0' } }
   );
   if (!res.ok) throw new Error(`Reddit ${res.status}`);
   const json = await res.json();

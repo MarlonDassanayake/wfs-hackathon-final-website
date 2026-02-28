@@ -1,5 +1,5 @@
 /**
- * KRATOS — Gemini AI Service
+ * ALETHEIA — Gemini AI Service
  *
  * ⚠️  The API key lives in .env (EXPO_PUBLIC_GEMINI_API_KEY).
  *     .env is gitignored. Never hard-code the key here.
@@ -27,7 +27,7 @@ function setCache(key: string, data: unknown) {
 
 // ── Investment philosophy injected into every Gemini call ────────────────────
 const SYSTEM_INSTRUCTION = `
-You are KRATOS — the AI brain of a personal hedge fund. Every analysis you produce is guided by this investment philosophy:
+You are ALETHEIA — the AI brain of a personal hedge fund. ALETHEIA means "truth/disclosure" in Greek — your purpose is to reveal the gap between narrative and reality. Every analysis you produce is guided by this investment philosophy:
 
 CORE PHILOSOPHY:
 1. EXTREME SELECTIVITY — Say "no" to almost everything. The universe of truly exceptional companies is small. Only the highest-conviction ideas deserve attention. Very successful people say "no" to almost everything (Buffett).
@@ -37,6 +37,7 @@ CORE PHILOSOPHY:
 5. BUFFETT METHODOLOGY (not Grahamian) — Ask: "What will this be worth in 5–10 years?" Focus on future earnings power and durability. Grahamian net-nets have been arbitraged away by $10 trillion in private equity. The question has changed from "What is it worth today?" to "What will it be worth in the future?"
 6. CONTRARIAN EDGE — Markets systematically overprice popular narratives and underprice ignored quality. Find the gap between story and fundamentals. You make money when you are right AND the market is wrong.
 7. MACRO CONTEXT — S&P 500 trades at ~22× forward P/E, the widest gap above the historical median since the dotcom bubble (and this with higher interest rates). In every prior 20-year window, 22× P/E was not sustained beyond 2 years. Assume correction risk is elevated. Downside protection always comes first.
+8. SENTIMENT INTELLIGENCE — Crowd sentiment is ALETHEIA's edge. Track narrative vs fundamentals divergence. Elevated hype with deteriorating fundamentals = short signal. Ignored quality with low sentiment = long signal. Sentiment scores anchor every recommendation.
 
 SHORT THESIS LENS:
 Target stocks where social narrative >> fundamentals. Signals: earnings deteriorating, insiders selling, parabolic price action disconnected from reality, AI/hype pivot without revenue impact, binary catalysts approaching. These are crowded, narrative-driven trades ripe for mean reversion.
@@ -199,7 +200,7 @@ export async function analyzeStock(
     : '';
 
   const prompt = `
-Analyse the stock ${ticker.toUpperCase()} through the KRATOS investment philosophy lens.
+Analyse the stock ${ticker.toUpperCase()} through the ALETHEIA investment philosophy lens.
 ${priceContext}
 ${recContext}
 
@@ -333,7 +334,7 @@ export async function getLandingData(): Promise<LandingData> {
   if (cached) return cached;
 
   const prompt = `
-Based on current market conditions and the KRATOS investment philosophy, identify the most compelling opportunities right now.
+Based on current market conditions and the ALETHEIA investment philosophy, identify the most compelling opportunities right now.
 
 Return ONLY a raw JSON object — no markdown fences, no extra text.
 
@@ -398,7 +399,7 @@ export interface ContrarianEdge {
   verdict: string;              // e.g. "AI Hype Exceeds Fundamentals"
   contrarian_take: string;      // 2-3 sentence core insight
   crowd_sees: string[];         // What bulls/media are saying
-  kratos_sees: string[];        // What the numbers/contrarian view reveals
+  aletheia_sees: string[];      // What the numbers/contrarian view reveals
   referenced_articles: Array<{
     headline: string;
     source: string;
@@ -438,7 +439,7 @@ Return ONLY a raw JSON object — no markdown, no fences:
     "<another narrative point>",
     "<third narrative point>"
   ],
-  "kratos_sees": [
+  "aletheia_sees": [
     "<what fundamentals/contrarian view reveals — e.g. 'Revenue growth decelerating despite AI hype'>",
     "<another reality point>",
     "<third reality point>"
@@ -467,7 +468,7 @@ Return ONLY the JSON object.
   return data;
 }
 
-// ── KRATOS Chat (plain text, no JSON mode) ────────────────────────────────────
+// ── ALETHEIA Chat (plain text, no JSON mode) ──────────────────────────────────
 async function callGeminiText(prompt: string): Promise<string> {
   if (!API_KEY) throw new Error('EXPO_PUBLIC_GEMINI_API_KEY is not set in .env');
   const res = await fetch(`${ENDPOINT}?key=${API_KEY}`, {
@@ -476,7 +477,7 @@ async function callGeminiText(prompt: string): Promise<string> {
     body: JSON.stringify({
       system_instruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.5, maxOutputTokens: 450 },
+      generationConfig: { temperature: 0.5, maxOutputTokens: 2000 },
     }),
   });
   if (!res.ok) {
@@ -498,26 +499,107 @@ export async function chatWithKratos(
   contrarian: ContrarianEdge | null,
   history: ChatMessage[],
 ): Promise<string> {
+  const sentiment = stockData.market_impact.sentiment;
   const ctx = [
-    `Stock: ${ticker.toUpperCase()} — ${stockData.name}`,
+    `Stock: ${ticker.toUpperCase()} — ${stockData.name} (${stockData.sector})`,
     `Recommendation: ${stockData.master_recommendation}`,
-    `Short thesis: ${stockData.short_mode.total_score}/100 (${stockData.short_mode.letter_grade}) — ${stockData.short_mode.verdict}`,
-    `Long thesis: ${stockData.long_mode.total_score}/100 (${stockData.long_mode.letter_grade}) — ${stockData.long_mode.verdict}`,
+    `Short thesis score: ${stockData.short_mode.total_score}/100 (${stockData.short_mode.letter_grade}) — ${stockData.short_mode.verdict}`,
+    `Long thesis score: ${stockData.long_mode.total_score}/100 (${stockData.long_mode.letter_grade}) — ${stockData.long_mode.verdict}`,
+    `Sentiment: ${sentiment.overall} | Coverage: ${sentiment.coverage_volume} | Narrative trend: ${sentiment.narrative_trend}`,
     `Overview: ${stockData.company_overview}`,
-    contrarian ? `Contrarian verdict: ${contrarian.verdict} | Bubble risk: ${contrarian.bubble_risk}` : '',
+    contrarian ? `Contrarian verdict: ${contrarian.verdict} | Bubble risk: ${contrarian.bubble_risk} | Hype score: ${contrarian.hype_score}/100 | Fundamentals score: ${contrarian.fundamentals_score}/100` : '',
     contrarian ? `Contrarian insight: ${contrarian.contrarian_take}` : '',
+    contrarian ? `Crowd narrative: ${contrarian.crowd_sees.slice(0, 2).join('; ')}` : '',
+    contrarian ? `ALETHEIA sees: ${contrarian.aletheia_sees.slice(0, 2).join('; ')}` : '',
   ].filter(Boolean).join('\n');
 
   const hist = history.length
-    ? '\nPrevious conversation:\n' + history.map(m => `${m.role === 'user' ? 'User' : 'KRATOS'}: ${m.text}`).join('\n')
+    ? '\nPrevious conversation:\n' + history.map(m => `${m.role === 'user' ? 'User' : 'ALETHEIA'}: ${m.text}`).join('\n')
     : '';
 
-  const prompt = `You are analysing ${ticker.toUpperCase()} for a user. Use this data:
+  const prompt = `You are ALETHEIA analysing ${ticker.toUpperCase()} for a user. Use this data:
 ${ctx}${hist}
 
 User: ${question}
 
-Answer in 2-4 sentences using probabilistic language. Be direct and specific to ${ticker.toUpperCase()}. No bullet points, no markdown formatting.`;
+Rules:
+- Write exactly 3 complete sentences. No more, no less.
+- Every sentence must end with a full stop. Never cut off mid-sentence.
+- Reference specific numbers (scores, prices, percentages) from the data above.
+- Apply contrarian thinking: where does narrative diverge from fundamentals?
+- Use probabilistic language (may, could, likely, suggests).
+- No bullet points, no markdown, no headers.
+- Be specific to ${ticker.toUpperCase()}.`;
 
   return callGeminiText(prompt);
+}
+
+// ── Portfolio Hedge Recommendations ──────────────────────────────────────────
+export interface HedgeRecommendation {
+  hedgeBeta: number;
+  volatilityReduction: number;
+  hedge1: { title: string; instruments: string[]; reason: string };
+  hedge2: { title: string; instruments: string[]; reason: string };
+  hedge3: { title: string; instruments: string[]; reason: string };
+  aletheiaInsight: string;
+}
+
+export async function generateHedgeRecommendations(
+  portfolio: { ticker: string; sector: string; weight: number; beta: number }[],
+  metrics: { beta: number; volatility: number; sharpe: number; sectorConcentration: Record<string, number> },
+): Promise<HedgeRecommendation> {
+  const sectorStr = Object.entries(metrics.sectorConcentration)
+    .map(([s, w]) => `${s}: ${w.toFixed(1)}%`)
+    .join(', ');
+  const holdingsStr = portfolio
+    .map((h) => `${h.ticker} (${h.sector}, β=${h.beta.toFixed(2)}, weight=${(h.weight * 100).toFixed(1)}%)`)
+    .join('; ');
+
+  const prompt = `
+You are ALETHEIA — a personal hedge fund AI. Generate hedge recommendations for this portfolio.
+
+PORTFOLIO HOLDINGS: ${holdingsStr}
+PORTFOLIO METRICS:
+- Portfolio Beta: ${metrics.beta.toFixed(2)}
+- Annualised Volatility: ${(metrics.volatility * 100).toFixed(1)}%
+- Sharpe Ratio: ${metrics.sharpe.toFixed(2)}
+- Sector Concentration: ${sectorStr}
+
+Based on these metrics, recommend 3 hedging strategies:
+1. Sector Diversification hedge
+2. Asset Class Diversification hedge
+3. Tactical Hedge (options/inverse ETFs)
+
+Return ONLY a raw JSON object — no markdown, no fences:
+{
+  "hedgeBeta": <estimated portfolio beta after implementing all hedges — float>,
+  "volatilityReduction": <estimated % volatility reduction from hedges — integer 1-50>,
+  "hedge1": {
+    "title": "<e.g. 'Sector Diversification'>",
+    "instruments": ["<e.g. 'XLF — Financials ETF'>", "<e.g. 'XLE — Energy ETF'>"],
+    "reason": "<1-2 sentences: why this hedge reduces this portfolio's specific risk>"
+  },
+  "hedge2": {
+    "title": "<e.g. 'Asset Class Diversification'>",
+    "instruments": ["<e.g. 'GLD — Gold ETF'>", "<e.g. 'TLT — 20Y Treasury ETF'>"],
+    "reason": "<1-2 sentences: why this hedge reduces this portfolio's specific risk>"
+  },
+  "hedge3": {
+    "title": "<e.g. 'Tactical Hedge'>",
+    "instruments": ["<e.g. 'SQQQ — 3x Inverse NASDAQ'>", "<e.g. 'SPY Put Options'>"],
+    "reason": "<1-2 sentences: why this hedge reduces this portfolio's specific risk>"
+  },
+  "aletheiaInsight": "<3-4 sentences: ALETHEIA's assessment of this portfolio's risk profile — reference specific beta, volatility, sector concentration numbers. Apply contrarian/sentiment intelligence lens.>"
+}
+Return ONLY the JSON object.
+`.trim();
+
+  const raw = await callGemini(prompt);
+  let data: HedgeRecommendation;
+  try {
+    data = JSON.parse(raw) as HedgeRecommendation;
+  } catch {
+    throw new Error('Hedge recommendations response incomplete. Please retry.');
+  }
+  return data;
 }
