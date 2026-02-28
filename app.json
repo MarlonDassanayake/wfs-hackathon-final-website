@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "my-english-app",
-    "slug": "my-english-app",
+    "name": "Kratos",
+    "slug": "kratos-hedge-fund",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myenglishapp",
+    "scheme": "contrarian",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

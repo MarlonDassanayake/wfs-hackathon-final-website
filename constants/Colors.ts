@@ -1,26 +1,39 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Contrarian Market Intelligence - Dark trading terminal color scheme
  */
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+const tintColorLight = '#00C853';
+const tintColorDark = '#00E676';
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
+    text: '#0D1117',
+    background: '#F6F8FA',
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
+    icon: '#586069',
+    tabIconDefault: '#586069',
     tabIconSelected: tintColorLight,
+    // Custom colors for market data
+    bullish: '#00C853',
+    bearish: '#FF1744',
+    warning: '#FF9100',
+    cardBg: '#FFFFFF',
+    cardBorder: '#E1E4E8',
+    muted: '#8B949E',
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: '#E6EDF3',
+    background: '#0D1117',
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
+    icon: '#8B949E',
+    tabIconDefault: '#8B949E',
     tabIconSelected: tintColorDark,
+    // Custom colors for market data
+    bullish: '#00E676',
+    bearish: '#FF5252',
+    warning: '#FFB74D',
+    cardBg: '#161B22',
+    cardBorder: '#30363D',
+    muted: '#8B949E',
   },
 };
