@@ -1,15 +1,17 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform, View } from 'react-native';
+import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 const NAV_BG     = '#080C10'; // near-black — darker than BG (#0D1117)
 const NAV_BORDER = '#1C2128';
 const GREEN      = '#00E676';
+const WHITE = '#F5F5F5';
+const BLUE = '#00B0FF'
+const PURPLE = '#6B4189'
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -17,7 +19,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: GREEN,
+        tabBarActiveTintColor: BLUE,
         tabBarInactiveTintColor: '#4A5568',
         headerShown: false,
         tabBarButton: HapticTab,
@@ -63,7 +65,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="portfolio"
         options={{
-          title: 'Portfolio Hedge',
+          title: 'Portfolio Engine',
           tabBarIcon: ({ color }) => <IconSymbol size={26} name="briefcase.fill" color={color} />,
           tabBarLabelStyle: {
             fontSize: 8,

@@ -3,6 +3,7 @@
  * Factor-based risk metrics: beta, volatility, Sharpe, sector concentration.
  */
 
+import { fetchStockBeta } from './gemini';
 import { fetchStockQuote, type StockQuote } from './stockPrice';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -167,33 +168,28 @@ function knownSector(ticker: string): string | null {
   return KNOWN_SECTORS[ticker.toUpperCase()] ?? null;
 }
 
-// ── Beta + Sector (quoteSummary, with lookup fallback) ────────────────────────
+// ── Beta + Sector (Gemini-calculated beta, KNOWN_SECTORS fallback for sector) ─
 async function fetchBetaAndSector(ticker: string): Promise<{ beta: number; sector: string }> {
-  // Always start with the known-sector map for instant, reliable sector classification
   const fallbackSector = knownSector(ticker) ?? 'Other';
 
+  // Beta: always ask Gemini — it calculates based on training data
+  const beta = await fetchStockBeta(ticker);
+
+  // Sector: try Yahoo Finance quoteSummary, fall back to KNOWN_SECTORS
   try {
     const res = await fetch(
-      `https://query2.finance.yahoo.com/v10/finance/quoteSummary/${ticker}?modules=defaultKeyStatistics%2CassetProfile`,
+      `https://query2.finance.yahoo.com/v10/finance/quoteSummary/${ticker}?modules=assetProfile`,
       { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' } },
     );
     if (!res.ok) throw new Error(`quoteSummary ${res.status}`);
     const json = await res.json();
-    const result = json?.quoteSummary?.result?.[0];
-
-    const betaRaw = result?.defaultKeyStatistics?.beta?.raw;
-    const beta = typeof betaRaw === 'number' && isFinite(betaRaw) ? betaRaw : 1.0;
-
-    // Only use API sector if it returned something meaningful; otherwise use lookup
-    const sectorRaw = result?.assetProfile?.sector;
+    const sectorRaw = json?.quoteSummary?.result?.[0]?.assetProfile?.sector;
     const sector = (typeof sectorRaw === 'string' && sectorRaw.trim())
       ? sectorRaw.trim()
       : fallbackSector;
-
     return { beta, sector };
   } catch {
-    // API failed — use lookup for sector, default beta 1.0
-    return { beta: 1.0, sector: fallbackSector };
+    return { beta, sector: fallbackSector };
   }
 }
 

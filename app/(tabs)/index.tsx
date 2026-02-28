@@ -1,3 +1,4 @@
+import { IconSymbol } from '@/components/ui/IconSymbol';
 import { analyzeStock, getLandingData, type LandingData, type LandingPick } from '@/services/gemini';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -13,7 +14,6 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 
 const BG     = '#0D1117';
 const CARD   = '#161B22';
@@ -119,8 +119,8 @@ export default function HomeScreen() {
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <Animated.View entering={FadeIn.duration(500)} style={styles.header}>
           <Image
-            source={require('../../assets/images/logo.jpg')}
-            style={{ width: 44, height: 44, borderRadius: 8 }}
+            source={require('../../assets/images/logo.png')}
+            style={{ width: 80, height: 80, borderRadius: 10 }}
             contentFit="contain"
           />
           <View style={styles.headerText}>
@@ -132,7 +132,7 @@ export default function HomeScreen() {
         {/* ── Search ──────────────────────────────────────────────────────── */}
         <Animated.View entering={FadeInDown.delay(150).springify()} style={styles.searchSection}>
           <View style={styles.searchBox}>
-            <IconSymbol size={22} name="magnifyingglass" color={MUTED} style={styles.searchIcon} />
+            <IconSymbol size={20} name="magnifyingglass" color={MUTED} style={styles.searchIcon} />
             <TextInput
               placeholder="Enter stock name or ticker…"
               placeholderTextColor={MUTED}
@@ -152,7 +152,7 @@ export default function HomeScreen() {
             )}
           </View>
           <Pressable onPress={() => handleSearch()} style={styles.analyzeBtn}>
-            <Text style={styles.analyzeBtnText}>Analyze</Text>
+            <Text style={styles.analyzeBtnText}>Analyse</Text>
             <IconSymbol size={18} name="arrow.right" color="#0D1117" style={{ marginLeft: 8 }} />
           </Pressable>
         </Animated.View>
@@ -235,8 +235,8 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
   headerText: { flex: 1 },
-  appName: { fontSize: 24, fontWeight: '900', color: GREEN, letterSpacing: 4 },
-  appSub:  { fontSize: 12, letterSpacing: 1, marginTop: 2, color: MUTED },
+  appName: { fontSize: 40, fontWeight: '900', color: '#FFFFFF', letterSpacing: 3},
+  appSub:  { fontSize: 13, letterSpacing: 1, marginTop: 3, color: MUTED},
 
   // Search
   searchSection: { marginBottom: 28 },
@@ -246,10 +246,11 @@ const styles = StyleSheet.create({
     backgroundColor: CARD,
     borderWidth: 1,
     borderColor: BORDER,
-    borderRadius: 16,
+    borderRadius: 100,
     paddingHorizontal: 16,
     paddingVertical: 16,
     marginBottom: 12,
+    marginTop: 12
   },
   searchIcon:  { marginRight: 10 },
   searchInput: {
@@ -260,8 +261,8 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   analyzeBtn: {
-    backgroundColor: GREEN,
-    borderRadius: 14,
+    backgroundColor: '#1E88E5',
+    borderRadius: 100,
     paddingVertical: 17,
     flexDirection: 'row',
     alignItems: 'center',

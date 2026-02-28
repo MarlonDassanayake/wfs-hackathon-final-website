@@ -66,15 +66,15 @@ export default function AboutScreen() {
         {/* ── Brand header ───────────────────────────────────────────────────── */}
         <Animated.View entering={FadeIn.duration(600)} style={styles.brandBlock}>
           <Image
-            source={require('../../assets/images/logo.jpg')}
-            style={{ width: 72, height: 72, borderRadius: 16 }}
+            source={require('../../assets/images/logo.png')}
+            style={{ width: 72, height: 72, borderRadius: 100 }}
             contentFit="contain"
           />
           <Text style={styles.appName}>ALETHEIA</Text>
           <Text style={styles.tagline}>Personal Hedge Fund</Text>
           <View style={styles.divider} />
           <Text style={styles.description}>
-            ALETHEIA (Greek: "truth/disclosure") is an AI-powered investment intelligence platform
+            ALETHEIA (Greek: truth/disclosure) is an AI-powered investment intelligence platform
             built for contrarian investors. It reveals the gap between narrative and reality —
             helping you find what the crowd misses through sentiment intelligence, moat analysis,
             and rigorous fundamental scrutiny.
@@ -176,12 +176,13 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 8,
   },
-  appName:     { fontSize: 36, fontWeight: '900', color: GREEN, letterSpacing: 6, marginTop: 8 },
+  appName:     { fontSize: 36, fontWeight: '900', color: '#FFFFFF', letterSpacing: 4, marginTop: 8},
   tagline:     { fontSize: 13, color: MUTED, letterSpacing: 2, fontWeight: '600' },
   divider:     { width: 40, height: 2, backgroundColor: BORDER, borderRadius: 1, marginVertical: 12 },
   description: { fontSize: 14, color: '#C9D1D9', lineHeight: 22, textAlign: 'center', paddingHorizontal: 8 },
 
   sectionTitle: { fontSize: 10, fontWeight: '900', color: MUTED, letterSpacing: 2, marginBottom: 12 },
+  sectionTitlemore: { fontSize: 30, fontWeight: '900', color: MUTED, letterSpacing: 2, marginBottom: 12 },
 
   // Features
   featuresGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 28 },

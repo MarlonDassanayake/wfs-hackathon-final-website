@@ -1,27 +1,27 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  ScrollView,
-  ActivityIndicator,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import {
-  fetchPortfolioStockData,
-  calculatePortfolioMetrics,
-  type PortfolioHolding,
-} from '@/services/portfolioService';
 import {
   generateHedgeRecommendations,
   type HedgeRecommendation,
 } from '@/services/gemini';
+import {
+  calculatePortfolioMetrics,
+  fetchPortfolioStockData,
+  type PortfolioHolding,
+} from '@/services/portfolioService';
+import React, { useCallback, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
 const BG     = '#0D1117';
@@ -354,11 +354,8 @@ export default function PortfolioScreen() {
         >
           {/* ── Section 1 Header ──────────────────────────────────────────────── */}
           <Animated.View entering={FadeIn.duration(400)} style={styles.sectionHeader}>
-            <IconSymbol size={16} name="briefcase.fill" color={GREEN} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.sectionTitle}>FACTOR BASED INVESTMENT</Text>
-              <Text style={[styles.sectionSub, { color: MUTED }]}>& RISK ASSESSMENT PROFILE</Text>
-            </View>
+            <IconSymbol size={20} name="briefcase.fill" color={BLUE} />
+            <Text style={styles.sectionTitle} numberOfLines={2} adjustsFontSizeToFit>FACTOR BASED INVESTMENT</Text>
           </Animated.View>
 
           {/* ── Add stock panel ──────────────────────────────────────────────── */}
@@ -380,7 +377,7 @@ export default function PortfolioScreen() {
               <Pressable
                 onPress={handleSearch}
                 disabled={searchLoading || !searchQuery.trim()}
-                style={[styles.searchBtn, (!searchQuery.trim()) && { opacity: 0.5 }]}
+                style={[styles.searchBtn, (!searchQuery.trim()) && { opacity: 1 }]}
               >
                 {searchLoading
                   ? <ActivityIndicator size="small" color={BG} />
@@ -674,8 +671,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     marginTop: 8,
   },
-  sectionTitle: { fontSize: 12, fontWeight: '900', color: GREEN, letterSpacing: 1.5 },
-  sectionSub:   { fontSize: 10, letterSpacing: 1, marginTop: 1 },
+  sectionTitle: { fontSize: 30, fontWeight: '900', color: '#E6EDF3', letterSpacing: 2, flex: 1 },
 
   // Add panel
   addPanel: {
@@ -704,7 +700,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   searchBtn: {
-    backgroundColor: GREEN,
+    backgroundColor: BLUE,
     borderRadius: 10,
     width: 44,
     alignItems: 'center',
@@ -840,3 +836,5 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: 18, fontWeight: '800', color: MUTED },
   emptyBody:  { fontSize: 13, color: MUTED, textAlign: 'center', lineHeight: 20, paddingHorizontal: 16 },
 });
+
+

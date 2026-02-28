@@ -1,27 +1,27 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  ActivityIndicator,
-  StyleSheet,
-  Linking,
-  Dimensions,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import {
   fetchFearGreed,
-  fetchRedditPosts,
   fetchMarketNews,
+  fetchRedditPosts,
   fetchXPulse,
   type FearGreedData,
-  type RedditPost,
   type NewsItem,
+  type RedditPost,
   type XPulseItem,
 } from '@/services/social';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Dimensions,
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const BG     = '#0D1117';
 const CARD   = '#161B22';
@@ -497,7 +497,7 @@ const styles = StyleSheet.create({
     paddingTop: 6,
     paddingBottom: 12,
   },
-  headerTitle: { fontSize: 14, fontWeight: '900', color: '#E6EDF3', letterSpacing: 2 },
+  headerTitle: { fontSize: 30, fontWeight: '900', color: '#E6EDF3', letterSpacing: 2 },
 
   tabRow: {
     flexDirection: 'row',

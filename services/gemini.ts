@@ -65,7 +65,7 @@ async function callGemini(prompt: string): Promise<string> {
       generationConfig: {
         responseMimeType: 'application/json',
         temperature: 0.3,
-        maxOutputTokens: 7000,
+        maxOutputTokens: 10000,
       },
     }),
   });
@@ -602,4 +602,29 @@ Return ONLY the JSON object.
     throw new Error('Hedge recommendations response incomplete. Please retry.');
   }
   return data;
+}
+
+// ── Stock Beta (Gemini-calculated) ────────────────────────────────────────────
+export async function fetchStockBeta(ticker: string): Promise<number> {
+  const key = `beta_${ticker.toUpperCase()}`;
+  const cached = getCache<number>(key);
+  if (cached !== null) return cached;
+
+  const prompt = `Return the 5-year monthly beta of ${ticker.toUpperCase()} vs the S&P 500.
+Account for special cases: inverse ETFs have negative beta (SQQQ ≈ -3), leveraged ETFs amplify (TQQQ ≈ 3), gold/bonds have near-zero beta.
+Return ONLY valid JSON: {"beta": <decimal number>}`;
+
+  try {
+    const text = await callGemini(prompt);
+    const data = JSON.parse(text);
+    const raw = data.beta;
+    const beta =
+      typeof raw === 'number' && isFinite(raw) ? raw :
+      typeof raw === 'string' && isFinite(parseFloat(raw)) ? parseFloat(raw) :
+      1.0;
+    setCache(key, beta);
+    return beta;
+  } catch {
+    return 1.0;
+  }
 }
