@@ -1,19 +1,18 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+import { analyzeStock, getLandingData, type LandingData, type LandingPick } from '@/services/gemini';
+import { router } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
+  ActivityIndicator,
   Pressable,
   ScrollView,
-  ActivityIndicator,
   StyleSheet,
-  Dimensions,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import { getLandingData, type LandingPick, type LandingNewsItem, type LandingData } from '@/services/gemini';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const BG     = '#0D1117';
 const CARD   = '#161B22';
@@ -22,31 +21,14 @@ const MUTED  = '#8B949E';
 const GREEN  = '#00E676';
 const RED    = '#FF5252';
 const AMBER  = '#FFB74D';
-const BLUE   = '#00B0FF';
 
-const { width } = Dimensions.get('window');
-
-// ── Grade colour ──────────────────────────────────────────────────────────────
-function gradeColor(g: string) {
-  if (!g) return MUTED;
-  if (['AAA','AA','A'].includes(g)) return GREEN;
-  if (['BBB','BB'].includes(g)) return AMBER;
-  return RED;
-}
-
-// ── Impact colour ─────────────────────────────────────────────────────────────
-function impactColor(i: string) {
-  if (i === 'positive') return GREEN;
-  if (i === 'negative') return RED;
-  return MUTED;
-}
-
-// ── Pick card ─────────────────────────────────────────────────────────────────
+// ── Pick card — simplified ────────────────────────────────────────────────────
 const PickCard = ({ pick, side }: { pick: LandingPick; side: 'short' | 'long' }) => {
   const accent = side === 'short' ? RED : GREEN;
+  const rec: 'SHORT' | 'LONG' = side === 'short' ? 'SHORT' : 'LONG';
   return (
     <Pressable
-      onPress={() => router.push(`/stock/${pick.ticker}` as any)}
+      onPress={() => router.push(`/stock/${pick.ticker}?rec=${rec}` as any)}
       style={[styles.pickCard, { borderColor: accent + '40' }]}
     >
       <View style={styles.pickTop}>
@@ -55,9 +37,7 @@ const PickCard = ({ pick, side }: { pick: LandingPick; side: 'short' | 'long' })
           <Text style={[styles.gradeText, { color: accent }]}>{pick.letter_grade}</Text>
         </View>
       </View>
-      <Text style={styles.pickName}>{pick.name}</Text>
-      <Text style={[styles.pickSector, { color: MUTED }]}>{pick.sector}</Text>
-      <Text style={[styles.pickReason, { color: MUTED }]}>{pick.reason}</Text>
+      <Text style={styles.pickName} numberOfLines={1}>{pick.name}</Text>
       <View style={styles.pickScoreRow}>
         <Text style={[styles.pickScoreLabel, { color: MUTED }]}>Score</Text>
         <Text style={[styles.pickScore, { color: accent }]}>{pick.score}/100</Text>
@@ -66,52 +46,52 @@ const PickCard = ({ pick, side }: { pick: LandingPick; side: 'short' | 'long' })
   );
 };
 
-// ── News card ─────────────────────────────────────────────────────────────────
-const NewsCard = ({ item }: { item: LandingNewsItem }) => {
-  const color = impactColor(item.impact);
-  const icon  = item.impact === 'positive' ? 'arrow.up.circle.fill'
-               : item.impact === 'negative' ? 'arrow.down.circle.fill'
-               : 'minus.circle.fill';
-  return (
-    <View style={styles.newsCard}>
-      <Text style={styles.newsHeadline}>{item.headline}</Text>
-      <Text style={[styles.newsSource, { color: MUTED }]}>{item.source}</Text>
-      <View style={styles.newsImpactRow}>
-        <IconSymbol size={14} name={icon} color={color} />
-        <Text style={[styles.newsImpactText, { color }]}>{item.impact_text}</Text>
-      </View>
-      {item.tickers_affected?.length > 0 && (
-        <View style={styles.newsTickerRow}>
-          {item.tickers_affected.map((t) => (
-            <Pressable
-              key={t}
-              onPress={() => router.push(`/stock/${t}` as any)}
-              style={styles.newsTicker}
-            >
-              <Text style={[styles.newsTickerText, { color: BLUE }]}>{t}</Text>
-            </Pressable>
-          ))}
-        </View>
-      )}
-    </View>
-  );
-};
-
-// ── Skeleton placeholder ─────────────────────────────────────────────────────
+// ── Skeleton placeholder ──────────────────────────────────────────────────────
 const Skeleton = ({ w, h, r = 6 }: { w: number | string; h: number; r?: number }) => (
   <View style={{ width: w as any, height: h, borderRadius: r, backgroundColor: CARD, opacity: 0.6 }} />
 );
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function HomeScreen() {
-  const [query, setQuery]       = useState('');
-  const [data, setData]         = useState<LandingData | null>(null);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState<string | null>(null);
+  const [query, setQuery]     = useState('');
+  const [data, setData]       = useState<LandingData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState<string | null>(null);
 
   useEffect(() => {
     getLandingData()
-      .then(setData)
+      .then((d) => {
+        setData(d);
+        // Pre-warm analysis AND update scores with the real analysis values
+        // (landing data scores come from a quick Gemini call; analyzeStock is more accurate)
+        const picks = [
+          ...d.top_shorts.map((p) => ({ ticker: p.ticker, rec: 'SHORT' as const, side: 'short' as const })),
+          ...d.top_longs.map((p)  => ({ ticker: p.ticker, rec: 'LONG'  as const, side: 'long'  as const })),
+        ];
+        picks.forEach(async ({ ticker, rec, side }) => {
+          try {
+            const analysis = await analyzeStock(ticker, undefined, rec);
+            const score = side === 'short'
+              ? analysis.short_mode.total_score
+              : analysis.long_mode.total_score;
+            const letter_grade = side === 'short'
+              ? analysis.short_mode.letter_grade
+              : analysis.long_mode.letter_grade;
+            setData((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                top_shorts: side === 'short'
+                  ? prev.top_shorts.map((p) => p.ticker === ticker ? { ...p, score, letter_grade } : p)
+                  : prev.top_shorts,
+                top_longs: side === 'long'
+                  ? prev.top_longs.map((p) => p.ticker === ticker ? { ...p, score, letter_grade } : p)
+                  : prev.top_longs,
+              };
+            });
+          } catch { /* silent — pre-warm failure is non-fatal */ }
+        });
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
@@ -133,10 +113,8 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <Animated.View entering={FadeIn.duration(500)} style={styles.header}>
           <IconSymbol size={36} name="chart.bar.fill" color={GREEN} />
@@ -148,7 +126,6 @@ export default function HomeScreen() {
 
         {/* ── Search ──────────────────────────────────────────────────────── */}
         <Animated.View entering={FadeInDown.delay(150).springify()} style={styles.searchSection}>
-          <Text style={styles.searchPrompt}>What should the market fear next?</Text>
           <View style={styles.searchBox}>
             <IconSymbol size={22} name="magnifyingglass" color={MUTED} style={styles.searchIcon} />
             <TextInput
@@ -188,36 +165,36 @@ export default function HomeScreen() {
 
         {/* ── Top Picks ───────────────────────────────────────────────────── */}
         <Animated.View entering={FadeInUp.delay(300).springify()} style={styles.picksSection}>
-          {/* Shorts */}
+          {/* Short picks */}
           <View style={styles.picksCol}>
             <View style={styles.sectionHeader}>
               <IconSymbol size={14} name="arrow.down.circle.fill" color={RED} />
-              <Text style={[styles.sectionTitle, { color: RED }]}>TOP SHORT PICKS</Text>
+              <Text style={[styles.sectionTitle, { color: RED }]}>TOP SHORTS</Text>
             </View>
             {loading
               ? Array.from({ length: 3 }).map((_, i) => (
                   <View key={i} style={[styles.pickCard, { borderColor: RED + '30', gap: 8 }]}>
-                    <Skeleton w="50%" h={16} />
-                    <Skeleton w="80%" h={12} />
-                    <Skeleton w="100%" h={24} r={4} />
+                    <Skeleton w="55%" h={18} />
+                    <Skeleton w="80%" h={11} />
+                    <Skeleton w="100%" h={14} r={4} />
                   </View>
                 ))
               : data?.top_shorts.map((p) => <PickCard key={p.ticker} pick={p} side="short" />)
             }
           </View>
 
-          {/* Longs */}
+          {/* Long picks */}
           <View style={styles.picksCol}>
             <View style={styles.sectionHeader}>
               <IconSymbol size={14} name="arrow.up.circle.fill" color={GREEN} />
-              <Text style={[styles.sectionTitle, { color: GREEN }]}>TOP LONG PICKS</Text>
+              <Text style={[styles.sectionTitle, { color: GREEN }]}>TOP LONGS</Text>
             </View>
             {loading
               ? Array.from({ length: 3 }).map((_, i) => (
                   <View key={i} style={[styles.pickCard, { borderColor: GREEN + '30', gap: 8 }]}>
-                    <Skeleton w="50%" h={16} />
-                    <Skeleton w="80%" h={12} />
-                    <Skeleton w="100%" h={24} r={4} />
+                    <Skeleton w="55%" h={18} />
+                    <Skeleton w="80%" h={11} />
+                    <Skeleton w="100%" h={14} r={4} />
                   </View>
                 ))
               : data?.top_longs.map((p) => <PickCard key={p.ticker} pick={p} side="long" />)
@@ -225,33 +202,15 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
 
-        {/* ── Market News ─────────────────────────────────────────────────── */}
-        <Animated.View entering={FadeInUp.delay(500).springify()} style={styles.newsSection}>
-          <View style={styles.sectionHeader}>
-            <IconSymbol size={14} name="newspaper.fill" color={BLUE} />
-            <Text style={[styles.sectionTitle, { color: BLUE }]}>MARKET NEWS + IMPACT</Text>
+        {loading && (
+          <View style={styles.loadingRow}>
+            <ActivityIndicator color={GREEN} />
+            <Text style={[styles.loadingText, { color: MUTED }]}>
+              KRATOS AI is scanning the market…
+            </Text>
           </View>
+        )}
 
-          {loading
-            ? Array.from({ length: 3 }).map((_, i) => (
-                <View key={i} style={[styles.newsCard, { gap: 8 }]}>
-                  <Skeleton w="90%" h={14} />
-                  <Skeleton w="40%" h={10} />
-                  <Skeleton w="100%" h={20} r={4} />
-                </View>
-              ))
-            : data?.market_news.map((n, i) => <NewsCard key={i} item={n} />)
-          }
-
-          {loading && (
-            <View style={styles.loadingRow}>
-              <ActivityIndicator color={GREEN} />
-              <Text style={[styles.loadingText, { color: MUTED }]}>
-                KRATOS AI is scanning the market…
-              </Text>
-            </View>
-          )}
-        </Animated.View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -267,22 +226,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 28,
+    marginBottom: 24,
     paddingTop: 4,
   },
   headerText: { flex: 1 },
   appName: { fontSize: 24, fontWeight: '900', color: GREEN, letterSpacing: 4 },
-  appSub:  { fontSize: 12, letterSpacing: 1, marginTop: 2 },
+  appSub:  { fontSize: 12, letterSpacing: 1, marginTop: 2, color: MUTED },
 
   // Search
-  searchSection: { marginBottom: 32 },
-  searchPrompt: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#E6EDF3',
-    marginBottom: 16,
-    lineHeight: 30,
-  },
+  searchSection: { marginBottom: 28 },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -294,7 +246,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     marginBottom: 12,
   },
-  searchIcon: { marginRight: 10 },
+  searchIcon:  { marginRight: 10 },
   searchInput: {
     flex: 1,
     fontSize: 18,
@@ -339,8 +291,8 @@ const styles = StyleSheet.create({
   retryText: { color: AMBER, fontWeight: '700', fontSize: 12 },
 
   // Picks
-  picksSection: { flexDirection: 'row', gap: 10, marginBottom: 28 },
-  picksCol: { flex: 1, gap: 10 },
+  picksSection: { flexDirection: 'row', gap: 10 },
+  picksCol:     { flex: 1, gap: 8 },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -354,47 +306,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     padding: 12,
-    gap: 4,
+    gap: 5,
   },
-  pickTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pickTicker: { fontSize: 18, fontWeight: '900', letterSpacing: 1 },
-  gradeBadge: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6 },
-  gradeText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
-  pickName: { fontSize: 12, fontWeight: '600', color: '#E6EDF3' },
-  pickSector: { fontSize: 11, marginBottom: 2 },
-  pickReason: { fontSize: 11, lineHeight: 16, marginTop: 2 },
-  pickScoreRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 },
-  pickScoreLabel: { fontSize: 11, fontWeight: '600' },
-  pickScore: { fontSize: 14, fontWeight: '900' },
+  pickTop:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  pickTicker:     { fontSize: 18, fontWeight: '900', letterSpacing: 1 },
+  gradeBadge:     { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6 },
+  gradeText:      { fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
+  pickName:       { fontSize: 11, fontWeight: '600', color: '#C9D1D9' },
+  pickScoreRow:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
+  pickScoreLabel: { fontSize: 11, fontWeight: '600', color: MUTED },
+  pickScore:      { fontSize: 14, fontWeight: '900' },
 
-  // News
-  newsSection: { gap: 10 },
-  newsCard: {
-    backgroundColor: CARD,
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderRadius: 12,
-    padding: 14,
-    gap: 6,
-  },
-  newsHeadline: { fontSize: 14, fontWeight: '700', color: '#E6EDF3', lineHeight: 20 },
-  newsSource: { fontSize: 11 },
-  newsImpactRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginTop: 2 },
-  newsImpactText: { fontSize: 12, flex: 1, lineHeight: 18 },
-  newsTickerRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
-  newsTicker: {
-    backgroundColor: BLUE + '18',
-    borderRadius: 5,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  newsTickerText: { fontSize: 11, fontWeight: '800' },
-
+  // Loading
   loadingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    paddingVertical: 12,
+    paddingVertical: 20,
     justifyContent: 'center',
   },
   loadingText: { fontSize: 13 },

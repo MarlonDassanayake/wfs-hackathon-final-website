@@ -64,7 +64,7 @@ async function callGemini(prompt: string): Promise<string> {
       generationConfig: {
         responseMimeType: 'application/json',
         temperature: 0.3,
-        maxOutputTokens: 8192,
+        maxOutputTokens: 7000,
       },
     }),
   });
@@ -181,13 +181,27 @@ export interface LandingData {
 }
 
 // ── Analyse a single stock ───────────────────────────────────────────────────
-export async function analyzeStock(ticker: string): Promise<StockAnalysis> {
+export async function analyzeStock(
+  ticker: string,
+  realPrice?: string,
+  recommendationHint?: 'SHORT' | 'LONG' | 'HOLD',
+): Promise<StockAnalysis> {
   const key = `stock_${ticker.toUpperCase()}`;
   const cached = getCache<StockAnalysis>(key);
   if (cached) return cached;
 
+  const priceContext = realPrice
+    ? `The current live market price is ${realPrice}. Use this exact price in the "price" field.`
+    : 'Use your best estimate for the current price.';
+
+  const recContext = recommendationHint
+    ? `IMPORTANT: Current market positioning classifies this stock as a ${recommendationHint} candidate. Set "master_recommendation" to "${recommendationHint}" and ensure the overall analysis is consistent with this view unless fundamentals overwhelmingly contradict it.`
+    : '';
+
   const prompt = `
 Analyse the stock ${ticker.toUpperCase()} through the KRATOS investment philosophy lens.
+${priceContext}
+${recContext}
 
 Return ONLY a raw JSON object — no markdown fences, no extra text, just JSON.
 
@@ -197,8 +211,8 @@ Return ONLY a raw JSON object — no markdown fences, no extra text, just JSON.
   "sector": "<Sector>",
   "industry": "<Industry>",
   "market_cap": "<e.g. $350B>",
-  "price": "<Approximate current price e.g. $142.50>",
-  "price_change_1y": "<e.g. +45% or -12%>",
+  "price": "${realPrice ?? '<current price>'}",
+  "price_change_1y": "<e.g. +45% or -12% — use real known 52-week performance>",
   "master_recommendation": "<SHORT | LONG | HOLD>",
   "master_color": "<#FF5252 for SHORT | #00E676 for LONG | #FFB74D for HOLD>",
   "company_overview": "<3-4 sentence neutral description: what the company does, core products/services, geographic exposure, key revenue drivers.>",
@@ -210,26 +224,26 @@ Return ONLY a raw JSON object — no markdown fences, no extra text, just JSON.
     "fundamental_fragility": {
       "score": <integer 0-100>,
       "label": "Fundamental Fragility Index",
-      "earnings_revenue_points": ["<bullet>", "<bullet>", "<bullet>"],
-      "balance_sheet_points": ["<bullet>", "<bullet>"],
+      "earnings_revenue_points": ["<bullet>", "<bullet>"],
+      "balance_sheet_points": ["<bullet>"],
       "valuation_points": ["<bullet>", "<bullet>"],
-      "points": ["<top 3 combined key points>"],
+      "points": ["<top 2 combined key points>"],
       "summary": "<one sentence>"
     },
     "narrative_inflation": {
       "score": <integer 0-100>,
       "label": "Narrative Inflation Score",
       "narrative_points": ["<bullet>", "<bullet>"],
-      "price_action_points": ["<bullet>", "<bullet>"],
+      "price_action_points": ["<bullet>"],
       "red_flag_points": ["<bullet>", "<bullet>"],
-      "points": ["<top 3 combined key points>"],
+      "points": ["<top 2 combined key points>"],
       "summary": "<one sentence>"
     },
     "catalyst_risk": {
       "score": <integer 0-100>,
       "label": "Upcoming Binary Risk Events",
-      "upcoming_catalysts": ["<catalyst>", "<catalyst>", "<catalyst>", "<catalyst>"],
-      "points": ["<top 3 key points>"],
+      "upcoming_catalysts": ["<catalyst>", "<catalyst>", "<catalyst>"],
+      "points": ["<top 2 key points>"],
       "summary": "<one sentence>"
     }
   },
@@ -241,31 +255,31 @@ Return ONLY a raw JSON object — no markdown fences, no extra text, just JSON.
     "fundamental_strength": {
       "score": <integer 0-100>,
       "label": "Fundamental Strength Score",
-      "points": ["<bullet>", "<bullet>", "<bullet>", "<bullet>"],
+      "points": ["<bullet>", "<bullet>", "<bullet>"],
       "summary": "<one sentence>"
     },
     "valuation_attractiveness": {
       "score": <integer 0-100>,
       "label": "Valuation Attractiveness Score",
-      "points": ["<bullet>", "<bullet>", "<bullet>"],
+      "points": ["<bullet>", "<bullet>"],
       "summary": "<one sentence>"
     },
     "earnings_momentum": {
       "score": <integer 0-100>,
       "label": "Earnings Momentum Score",
-      "points": ["<bullet>", "<bullet>", "<bullet>"],
+      "points": ["<bullet>", "<bullet>"],
       "summary": "<one sentence>"
     },
     "positioning_stability": {
       "score": <integer 0-100>,
       "label": "Positioning Stability Score",
-      "points": ["<bullet>", "<bullet>", "<bullet>"],
+      "points": ["<bullet>", "<bullet>"],
       "summary": "<one sentence>"
     },
     "narrative_gap": {
       "score": <integer 0-100>,
       "label": "Narrative Gap Score",
-      "points": ["<bullet>", "<bullet>", "<bullet>"],
+      "points": ["<bullet>", "<bullet>"],
       "summary": "<one sentence>"
     }
   },
@@ -280,7 +294,7 @@ Return ONLY a raw JSON object — no markdown fences, no extra text, just JSON.
         "ai_impact": "<positive | negative | neutral>",
         "ai_impact_text": "<one concise probabilistic statement using may/could/likely>"
       },
-      { "<repeat for 5-6 news items total>" }
+      { "<repeat for 3 news items total>" }
     ],
     "sentiment": {
       "overall": "<positive | neutral | negative>",
@@ -301,7 +315,13 @@ Return ONLY the JSON object.
 `.trim();
 
   const raw = await callGemini(prompt);
-  const data = JSON.parse(raw) as StockAnalysis;
+  let data: StockAnalysis;
+  try {
+    data = JSON.parse(raw) as StockAnalysis;
+  } catch {
+    // Gemini truncated the JSON — retry with stricter token budget signal
+    throw new Error(`Analysis response was incomplete. Please try again.`);
+  }
   setCache(key, data);
   return data;
 }
@@ -360,7 +380,144 @@ Return ONLY the JSON object.
 `.trim();
 
   const raw = await callGemini(prompt);
-  const data = JSON.parse(raw) as LandingData;
+  let data: LandingData;
+  try {
+    data = JSON.parse(raw) as LandingData;
+  } catch {
+    throw new Error('Landing data response was incomplete. Please try again.');
+  }
   setCache(key, data);
   return data;
+}
+
+// ── Contrarian Edge Analysis ──────────────────────────────────────────────────
+export interface ContrarianEdge {
+  hype_score: number;           // 0-100 how narrative-driven
+  fundamentals_score: number;   // 0-100 actual fundamental quality
+  bubble_risk: 'HIGH' | 'MODERATE' | 'LOW';
+  verdict: string;              // e.g. "AI Hype Exceeds Fundamentals"
+  contrarian_take: string;      // 2-3 sentence core insight
+  crowd_sees: string[];         // What bulls/media are saying
+  kratos_sees: string[];        // What the numbers/contrarian view reveals
+  referenced_articles: Array<{
+    headline: string;
+    source: string;
+    sentiment: 'bullish' | 'bearish' | 'neutral';
+    query: string;
+  }>;
+}
+
+export async function fetchContrarianAnalysis(
+  ticker: string,
+  stockData: StockAnalysis,
+): Promise<ContrarianEdge> {
+  const cacheKey = `contrarian_${ticker.toUpperCase()}`;
+  const cached = getCache<ContrarianEdge>(cacheKey);
+  if (cached) return cached;
+
+  const prompt = `
+Perform a CONTRARIAN EDGE analysis on ${ticker.toUpperCase()} (${stockData.name}).
+
+STOCK CONTEXT:
+- Recommendation: ${stockData.master_recommendation}
+- Short thesis score: ${stockData.short_mode.total_score}/100 (${stockData.short_mode.letter_grade}) — ${stockData.short_mode.verdict}
+- Long thesis score: ${stockData.long_mode.total_score}/100 (${stockData.long_mode.letter_grade}) — ${stockData.long_mode.verdict}
+- Overview: ${stockData.company_overview}
+
+Compare the NARRATIVE (what media/crowd says) vs FUNDAMENTALS (what numbers show). Identify the gap. Reference real recent articles. Be specific and data-driven.
+
+Return ONLY a raw JSON object — no markdown, no fences:
+{
+  "hype_score": <0-100, how narrative/sentiment driven is the stock right now>,
+  "fundamentals_score": <0-100, quality of underlying fundamentals>,
+  "bubble_risk": "<HIGH|MODERATE|LOW>",
+  "verdict": "<5-7 words e.g. 'AI Hype Far Exceeds Revenue Reality'>",
+  "contrarian_take": "<2-3 sentences: the single most important thing the crowd is missing about this stock>",
+  "crowd_sees": [
+    "<what bulls/media say — e.g. 'AI monetisation will drive exponential growth'>",
+    "<another narrative point>",
+    "<third narrative point>"
+  ],
+  "kratos_sees": [
+    "<what fundamentals/contrarian view reveals — e.g. 'Revenue growth decelerating despite AI hype'>",
+    "<another reality point>",
+    "<third reality point>"
+  ],
+  "referenced_articles": [
+    {
+      "headline": "<real, specific article headline that has been published about ${ticker.toUpperCase()}>",
+      "source": "<Bloomberg|WSJ|FT|Reuters|CNBC|Seeking Alpha|Barron's>",
+      "sentiment": "<bullish|bearish|neutral>",
+      "query": "<google search query to find this article>"
+    },
+    "<repeat for 4-5 articles covering both bull and bear perspectives>"
+  ]
+}
+Return ONLY the JSON object.
+`.trim();
+
+  const raw = await callGemini(prompt);
+  let data: ContrarianEdge;
+  try {
+    data = JSON.parse(raw) as ContrarianEdge;
+  } catch {
+    throw new Error('Contrarian analysis response incomplete. Please retry.');
+  }
+  setCache(cacheKey, data);
+  return data;
+}
+
+// ── KRATOS Chat (plain text, no JSON mode) ────────────────────────────────────
+async function callGeminiText(prompt: string): Promise<string> {
+  if (!API_KEY) throw new Error('EXPO_PUBLIC_GEMINI_API_KEY is not set in .env');
+  const res = await fetch(`${ENDPOINT}?key=${API_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.5, maxOutputTokens: 450 },
+    }),
+  });
+  if (!res.ok) {
+    const e = await res.text().catch(() => '');
+    throw new Error(`Gemini chat ${res.status}: ${e.slice(0, 120)}`);
+  }
+  const json = await res.json();
+  const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('Empty chat response');
+  return text.trim();
+}
+
+export type ChatMessage = { role: 'user' | 'ai'; text: string };
+
+export async function chatWithKratos(
+  ticker: string,
+  question: string,
+  stockData: StockAnalysis,
+  contrarian: ContrarianEdge | null,
+  history: ChatMessage[],
+): Promise<string> {
+  const ctx = [
+    `Stock: ${ticker.toUpperCase()} — ${stockData.name}`,
+    `Recommendation: ${stockData.master_recommendation}`,
+    `Short thesis: ${stockData.short_mode.total_score}/100 (${stockData.short_mode.letter_grade}) — ${stockData.short_mode.verdict}`,
+    `Long thesis: ${stockData.long_mode.total_score}/100 (${stockData.long_mode.letter_grade}) — ${stockData.long_mode.verdict}`,
+    `Overview: ${stockData.company_overview}`,
+    contrarian ? `Contrarian verdict: ${contrarian.verdict} | Bubble risk: ${contrarian.bubble_risk}` : '',
+    contrarian ? `Contrarian insight: ${contrarian.contrarian_take}` : '',
+  ].filter(Boolean).join('\n');
+
+  const hist = history.length
+    ? '\nPrevious conversation:\n' + history.map(m => `${m.role === 'user' ? 'User' : 'KRATOS'}: ${m.text}`).join('\n')
+    : '';
+
+  const prompt = `You are analysing ${ticker.toUpperCase()} for a user. Use this data:
+${ctx}${hist}
+
+User: ${question}
+
+Answer in 2-4 sentences using probabilistic language. Be direct and specific to ${ticker.toUpperCase()}. No bullet points, no markdown formatting.`;
+
+  return callGeminiText(prompt);
 }

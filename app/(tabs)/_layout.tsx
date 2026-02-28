@@ -1,12 +1,15 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+
+const NAV_BG     = '#080C10'; // near-black — darker than BG (#0D1117)
+const NAV_BORDER = '#1C2128';
+const GREEN      = '#00E676';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -14,39 +17,54 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: GREEN,
+        tabBarInactiveTintColor: '#4A5568',
         headerShown: false,
         tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            position: 'absolute',
-          },
-          default: {
-            backgroundColor: colorScheme === 'dark' ? '#0D1117' : '#F6F8FA',
-            borderTopColor: colorScheme === 'dark' ? '#30363D' : '#E1E4E8',
-          },
-        }),
+        tabBarStyle: {
+          backgroundColor: NAV_BG,
+          borderTopColor: NAV_BORDER,
+          borderTopWidth: 1,
+          ...Platform.select({
+            ios: {
+              position: 'absolute',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: -2 },
+              shadowOpacity: 0.4,
+              shadowRadius: 8,
+            },
+            android: {
+              elevation: 16,
+            },
+          }),
+        },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: '700',
+          letterSpacing: 0.5,
+          marginBottom: 2,
+        },
       }}>
+
       <Tabs.Screen
         name="index"
         options={{
           title: 'Dashboard',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.bar.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="chart.bar.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="social"
         options={{
-          title: 'Scanner',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="magnifyingglass" color={color} />,
+          title: 'Social',
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="newspaper.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="about"
         options={{
-          title: 'Contrarian',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="exclamationmark.triangle.fill" color={color} />,
+          title: 'About',
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="info.circle.fill" color={color} />,
         }}
       />
     </Tabs>
