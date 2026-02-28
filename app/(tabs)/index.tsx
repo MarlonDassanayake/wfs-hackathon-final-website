@@ -125,7 +125,7 @@ export default function HomeScreen() {
           />
           <View style={styles.headerText}>
             <Text style={styles.appName}>ALETHEIA</Text>
-            <Text style={[styles.appSub, { color: MUTED }]}>Personal Hedge Fund</Text>
+            <Text style={[styles.appSub, { color: MUTED }]}>Pocket-Sized Hedge Fund</Text>
           </View>
         </Animated.View>
 

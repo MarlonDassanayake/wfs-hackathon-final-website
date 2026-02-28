@@ -41,7 +41,7 @@ const philosophy = [
   {
     icon: 'dollarsign.circle.fill' as const,
     color: AMBER,
-    title: 'Never Overpay',
+    title: 'Barbell Positioning',
     body: 'Downside protection first; upside takes care of itself. A great company at 60× P/E can still destroy capital through multiple contraction.',
   },
   {
@@ -71,13 +71,13 @@ export default function AboutScreen() {
             contentFit="contain"
           />
           <Text style={styles.appName}>ALETHEIA</Text>
-          <Text style={styles.tagline}>Personal Hedge Fund</Text>
+          <Text style={styles.tagline}>Pocket-Sized Hedge Fund</Text>
           <View style={styles.divider} />
           <Text style={styles.description}>
             ALETHEIA (Greek: truth/disclosure) is an AI-powered investment intelligence platform
-            built for contrarian investors. It reveals the gap between narrative and reality —
-            helping you find what the crowd misses through sentiment intelligence, moat analysis,
-            and rigorous fundamental scrutiny.
+            built for contrarian investors. Aletheia brings top hedge-fund level qualitative research, portfolio risk assessment and personalised hedge recommendations to retail investors like never before.
+            Aletheia is built to help you maximise your equity knowledge through sentiment intelligence, moat analysis,
+            and rigorous fundamental scrutiny, just like they do.
           </Text>
         </Animated.View>
 
@@ -155,7 +155,7 @@ export default function AboutScreen() {
 
         {/* ── Version ────────────────────────────────────────────────────────── */}
         <Animated.View entering={FadeInDown.delay(650).springify()} style={styles.versionRow}>
-          <Text style={styles.versionText}>ALETHEIA v1.0  ·  Built at WFS Hackathon 2026</Text>
+          <Text style={styles.versionText}>ALETHEIA  ·  Built at WFS Hackathon 2026</Text>
           <Text style={[styles.versionText, { color: MUTED + '80', marginTop: 4 }]}>
           </Text>
         </Animated.View>
