@@ -1,0 +1,9 @@
+{
+  "/api/gemini/route": "app/api/gemini/route.js",
+  "/api/social/route": "app/api/social/route.js",
+  "/api/quote/route": "app/api/quote/route.js",
+  "/page": "app/page.js",
+  "/social/page": "app/social/page.js",
+  "/stock/[ticker]/page": "app/stock/[ticker]/page.js",
+  "/portfolio/page": "app/portfolio/page.js"
+}
