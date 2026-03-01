@@ -1,4 +1,4 @@
-# ALETHEIA — Claude Operating Instructions
+# ALETHEIA — Operating Instructions
 
 ## Project Overview
 ALETHEIA is a contrarian investment intelligence web app. It is a **Next.js 15 website** located at `apps/nextjs/`. It was converted from an Expo/React Native app. The root directory also contains the original mobile app source (ignored for web purposes).
