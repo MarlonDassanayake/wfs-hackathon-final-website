@@ -1,4 +1,4 @@
-# Aletheia - Pocket-Sized Hedge Fund, our submission for WFS Fintech Hackathon
+# Aletheia - Pocket-Sized Hedge Fund, this is the accompanying website for our submission for WFS Fintech Hackathon
 By Marlon, Armaan, Ricky, Rudraj, Kathan
 
 ## Project Description.
@@ -92,25 +92,3 @@ financial data APIs with fallback validation logic.
 This repository does not include any real API keys or secrets.
 The version of the code in this GitHub repo contains a non-working dummy API key as a placeholder.
 To run the project locally, replace this dummy API key in the env files with a valid API key (this is what we have done in our local version).
-
-## Pre-requisites required to use our app:
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
