@@ -13,7 +13,7 @@ apart is her Risk Insights Section - an inbuilt tool that diagnoses portfolio ri
 delivering actionable hedging and diversification recommendations; essentially simplifying retail
 investing.
 
-## Extended Description (Problem Statement).
+## Extended Description (Problem Statement)
 
 Retail investors operate in a day-to-day market dominated by institutional capital, advanced analytics,
 high technology and structured risk management frameworks. While hedge funds combine
